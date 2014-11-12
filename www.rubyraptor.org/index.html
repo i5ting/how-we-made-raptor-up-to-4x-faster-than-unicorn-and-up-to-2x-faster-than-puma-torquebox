@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Ruby web server up to 4x faster than Unicorn, up to 2x faster than Puma and Torquebox.">
+
+    <title>Raptor: a radically new Ruby web server</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css?2" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="css/landing-page.css?4" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="http://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="http://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <div class="left-button-banner visible-xs">
+        <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fwww.rubyraptor.org%2F&amp;text=Check%20out%20Raptor,%20a%20new%20Ruby%20app%20server%2C%20up%20to%204x%20faster%20than%20Unicorn%2C%20Puma%2C%20Torquebox!&amp;tw_p=tweetbutton&amp;url=http%3A%2F%2Fwww.rubyraptor.org%2F" class="twitter"><img src="img/twitter-shadow.png" width="62" height="54" alt="Tweet about Raptor" title="Tweet about Raptor"></a>
+    </div>
+    <div class="button-banner">
+        <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fwww.rubyraptor.org%2F&amp;text=Check%20out%20Raptor,%20a%20new%20Ruby%20app%20server%2C%20up%20to%204x%20faster%20than%20Unicorn%2C%20Puma%2C%20Torquebox!&amp;tw_p=tweetbutton&amp;url=http%3A%2F%2Fwww.rubyraptor.org%2F" class="twitter hidden-xs"><img src="img/twitter.png" width="48" height="48" alt="Tweet about Raptor" title="Tweet about Raptor"></a>
+        <a href="github.html"><img src="img/forkme-orange.png" alt="Fork me on GitHub" width="149" height="149"></a>
+    </div>
+
+    <!-- Header -->
+    <div class="intro-header">
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="intro-message">
+                        <h1><a href="/"><img src="img/logo.png" width="150" height="139" alt="Raptor"></a></h1>
+                        <h3>A radically new Ruby web server</h3>
+                        <p><img src="img/chart.png" width="400" height="356" class="img-responsive chart"></p>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- /.container -->
+
+    </div>
+    <!-- /.intro-header -->
+
+    <!-- Page Content -->
+
+    <div class="content-section-a content-section-disruption-announcement">
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-sm-12 disruption-announcement">
+                    <div class="clearfix"></div>
+                    <h2 class="section-heading">Disrupting the Ruby web server scene in</h2>
+                    <p class="countdown">
+                        <script>
+                        var RELEASE_DATE = new Date(2014, 10, 25); // November 25
+                        var TODAY = new Date();
+                        var DIFFDATE = RELEASE_DATE - TODAY;
+                        document.write(Math.round(DIFFDATE / 1000 / 60 / 60 / 24));
+                        </script>
+                        days
+                    </p>
+
+                    <!-- Begin MailChimp Signup Form -->
+                    <div id="mc_embed_signup">
+                    <form action="http://rubyraptor.us9.list-manage.com/subscribe/post?u=50b909a711edc6443e7650d5f&amp;id=fd3f1e9dcf" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate form-inline" target="_blank" role="form" novalidate>
+                        <div id="mc_embed_signup_scroll" class="form-group">
+                        <input type="email" value="" name="EMAIL" class="email form-control input-lg" id="mce-EMAIL" placeholder="Enter your email address" required>
+                        <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+                        <div style="position: absolute; left: -5000px;"><input type="text" name="b_50b909a711edc6443e7650d5f_fd3f1e9dcf" tabindex="-1" value=""></div>
+                        <p class="visible-xs-block visible-sm-block"></p>
+                        <input type="submit" value="Subscribe for updates" name="subscribe" id="mc-embedded-subscribe" class="btn btn-primary btn-lg">
+                        </div>
+                    </form>
+                    </div>
+                    <!--End mc_embed_signup-->
+                    <p><small><a href="#why_subscribe">Why subscribe?</a></small></p>
+
+                    <p style="margin-top: 2em">
+                        <a href="https://www.thunderclap.it/projects/17748-raptor-fast-ruby-web-server" class="thunderclap">
+                            <img src="img/thunderclap.png" width="48" height="59">
+                            Help us spread the news with Thunderclap
+                        </a>
+                    </p>
+
+                    <ul style="margin-top: 2em" class="list-inline intro-social-buttons">
+                        <li>
+                            <a href="https://twitter.com/share" class="twitter-share-button" data-text="Check out Raptor: a new Ruby app server, up to 4x faster than Unicorn, Puma, Torquebox!" data-size="large">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                        </li>
+                        <li>
+                            <a href="https://twitter.com/raptorappserver" class="twitter-follow-button" data-show-count="false" data-size="large">Follow @raptorappserver</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+        <!-- /.container -->
+
+    </div>
+    <!-- /.content-section-a -->
+
+    <div class="content-section-b">
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-md-push-6 col-md-5">
+                    <div class="clearfix"></div>
+                    <h2 class="section-heading" style="margin-top: 0">Performance and visiblity</h2>
+                    <p class="lead">
+                        Raptor is a new Ruby app server built for two goals: <em>performance</em> and <em>visibility</em>.
+                    </p>
+
+                    <p>
+                        Raptor has an innovative and optimized HTTP engine, making it <strong>up to 4x faster</strong> than Unicorn, up to 2x faster than Puma and up to 2x faster than Torquebox.
+                    </p>
+
+                    <p>
+                        Raptor gives you <strong>visibility into your app's behavior</strong>, so that you can easily analyze problems. No more pulling your hair out during production, wondering why the app is misbehaving.
+                    </p>
+
+                    <p>
+                        <a href="how-we-made-raptor-up-to-4x-faster-than-unicorn-and-up-to-2x-faster-than-puma-torquebox/" class="btn btn-info btn-lg">Learn why Raptor is so fast &raquo;</a>
+                    </p>
+                </div>
+                <div class="col-md-pull-6 col-md-offset-1 col-md-5">
+                    <img class="img-responsive" src="img/blueprint.jpg" width="458" height="324">
+                </div>
+            </div>
+
+        </div>
+        <!-- /.container -->
+
+    </div>
+    <!-- /.content-section-b -->
+
+    <div class="content-section-a">
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-md-5">
+                    <div class="clearfix"></div>
+                    <h2 class="section-heading">Don't take our word for it</h2>
+                    <p class="lead">Before announcing Raptor, we sent previews to various testers. Here's what some of them have to say.</p>
+                    <p>Stay tuned and <a href="#get_notified">subscribe for updates</a>, because other testers will soon follow with their reviews.</p>
+                    <p>We're going to release a public beta very soon. The best part? It's going to be <strong>open source</strong> and will be released on Github.</p>
+                </div>
+                <div class="col-md-offset-1 col-md-3 quote-container">
+                    <a href="http://www.akitaonrails.com/2014/10/19/the-new-kid-on-the-block-for-ruby-servers-raptor"><img class="img-responsive" src="img/fabioakita.jpg" width="300" height="200"></a>
+                    <blockquote>
+                        <a href="http://www.akitaonrails.com/2014/10/19/the-new-kid-on-the-block-for-ruby-servers-raptor" class="quotelink">"You could get almost 4 times the throughput from your application. From what we have seen so far, this one looks like a winner!"</a>
+                        <small><a href="http://www.akitaonrails.com/2014/10/19/the-new-kid-on-the-block-for-ruby-servers-raptor">Fabio Akita, AkitaOnRails.com</a><br>Prominent Brazilian Ruby blogger.</small>
+                    </blockquote>
+                    <p><a href="http://www.akitaonrails.com/2014/10/19/the-new-kid-on-the-block-for-ruby-servers-raptor" class="btn btn-primary">Read Fabio's review</a></p>
+                </div>
+                <div class="col-md-3 quote-container">
+                    <a href="http://www.rubyinside.com/raptor-a-new-ruby-web-server-for-faster-app-deployment-6168.html"><img class="img-responsive" src="img/rubyinside.png" width="300" height="200"></a>
+                    <blockquote>
+                        <a href="http://www.rubyinside.com/raptor-a-new-ruby-web-server-for-faster-app-deployment-6168.html" class="quotelink">"Raptor, a new entry to the burgeoning world of Ruby Web servers, boasts some compelling features. [...] The initial results seem promising."</a>
+                        <small><a href="http://www.rubyinside.com/raptor-a-new-ruby-web-server-for-faster-app-deployment-6168.html">Peter Cooper, RubyInside and Ruby Weekly</a><br>Prominent Ruby news reporter.</small>
+                    </blockquote>
+                    <p><a href="http://www.rubyinside.com/raptor-a-new-ruby-web-server-for-faster-app-deployment-6168.html" class="btn btn-primary">Read RubyInside</a></p>
+                </div>
+            </div>
+
+        </div>
+        <!-- /.container -->
+
+    </div>
+    <!-- /.content-section-a -->
+
+    <!--
+    <div class="content-section-b">
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-lg-5 col-lg-offset-1 col-sm-push-6  col-sm-6">
+                    <div class="clearfix"></div>
+                    <h2 class="section-heading">More powerful than you imagined</h2>
+                    <p class="lead">So it's faster, but is that all? Of course not.</p>
+                    <p>Raptor makes <strong>administration much easier</strong>, lets you <strong>analyze production problems</strong> more quickly and more easily, and <strong>protects</strong> your app against Internet attacks.</p>
+                    <p><a href="learnmore.html" class="btn btn-primary btn-lg">Learn more</a></p>
+                </div>
+                <div class="col-lg-5 col-sm-pull-6  col-sm-6">
+                    <img class="img-responsive" src="img/phones.png" alt="">
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+    -->
+    <!-- /.content-section-b -->
+
+    <div class="banner">
+
+        <div class="container" id="get_notified">
+
+            <div class="release-date">
+                <h2>
+                    <span class="pretext">Public beta release:</span>
+                    <span class="date">25th November 2014</span>
+                </h2>
+            </div>
+
+            <div class="row">
+                <div class="col-sm-6  col-lg-5">
+                    <h3>Stay updated</h3>
+                    <p>We'll post more information as we reach the release date. We won't spam you and you can unsubscribe any time.</p>
+
+                    <!-- Begin MailChimp Signup Form -->
+                    <div id="mc_embed_signup">
+                    <form action="http://rubyraptor.us9.list-manage.com/subscribe/post?u=50b909a711edc6443e7650d5f&amp;id=fd3f1e9dcf" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate form-inline" target="_blank" role="form" novalidate>
+                        <div id="mc_embed_signup_scroll" class="form-group">
+                        <input type="email" value="" name="EMAIL" class="email form-control input-lg" id="mce-EMAIL" placeholder="Enter your email address" required>
+                        <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+                        <div style="position: absolute; left: -5000px;"><input type="text" name="b_50b909a711edc6443e7650d5f_fd3f1e9dcf" tabindex="-1" value=""></div>
+                        <p class="visible-xs-block visible-sm-block"></p>
+                        <input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="btn btn-primary btn-lg">
+                        </div>
+                    </form>
+                    </div>
+                    <!--End mc_embed_signup-->
+
+                    <p style="margin-top: 1.5em">
+                        <a href="https://twitter.com/share" class="twitter-share-button" data-text="Raptor: new Ruby app server, up to 4x faster than Unicorn, Puma, Torquebox" data-size="large">Tweet</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                        <a href="https://twitter.com/raptorappserver" class="twitter-follow-button" data-show-count="false" data-size="large">Follow @raptorappserver</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+                    </p>
+                </div>
+                <div class="col-sm-6  col-lg-offset-1 col-lg-5">
+                    <h3 id="why_subscribe">Why subscribe?</h3>
+                    <ul>
+                        <li>Receive further third-party reviews.</li>
+                        <li>Learn how we made Raptor so fast.</li>
+                        <li>Learn how Raptor gives you visibility into app behavior.</li>
+                        <li>Learn about more cool Raptor features.</li>
+                        <li>Get notified when we release.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+        <!-- /.container -->
+
+    </div>
+    <!-- /.banner -->
+
+    <div class="thunderclap_banner">
+        <div class="container">
+            <p>Stay updated and celebrate the upcoming launch.</p>
+            <h1><a href="https://www.thunderclap.it/projects/17748-raptor-fast-ruby-web-server">
+                <img src="img/thunderclap-bordered.png" width="128" height="157">
+                <span class="text">Support us on Thunderclap</span>
+            </a></h1>
+        </div>
+    </div>
+
+    <div class="who_are_we">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-offset-2 col-md-8  col-lg-offset-3 col-lg-6">
+                    <h3>Who are we?</h3>
+                    <p>We are a group of friends, software developers and business partners with backgrounds in computer science, systems programming, web development, Ruby, and Rails. Our mission is to revolutionize the Ruby app server scene with the next new, hot technology.</p>
+                    <p><a href="mailto:info@rubyraptor.org" class="btn btn-primary btn-lg">Contact us</a></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-32583440-7', 'auto');
+      ga('require', 'linkid', 'linkid.js');
+      ga('send', 'pageview');
+
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,522 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Ruby web server up to 4x faster than Unicorn, up to 2x faster than Puma and Torquebox.">
+
+    <title>How we've made Raptor up to 4x faster than Unicorn, up to 2x faster than Puma, Torquebox</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../css/bootstrap.min.css?2" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../css/landing-page.css?4" rel="stylesheet">
+
+    <!-- Custom Fonts -->
+    <link href="http://fonts.googleapis.com/css?family=Lato:300,400,700,300italic,400italic,700italic" rel="stylesheet" type="text/css">
+    <link href="http://fonts.googleapis.com/css?family=PT+Serif:400,700,400italic" rel="stylesheet" type="text/css">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <!--[if lt IE 9]>
+        <script src="http://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="http://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+    <div class="left-button-banner visible-xs">
+        <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fwww.rubyraptor.org%2F&amp;text=Check%20out%20Raptor,%20a%20new%20Ruby%20app%20server%2C%20up%20to%204x%20faster%20than%20Unicorn%2C%20Puma%2C%20Torquebox!&amp;tw_p=tweetbutton&amp;url=http%3A%2F%2Fwww.rubyraptor.org%2F" class="twitter"><img src="../img/twitter-shadow.png" width="62" height="54" alt="Tweet about Raptor" title="Tweet about Raptor"></a>
+    </div>
+    <div class="button-banner">
+        <a href="https://twitter.com/intent/tweet?original_referer=http%3A%2F%2Fwww.rubyraptor.org%2F&amp;text=Check%20out%20Raptor,%20a%20new%20Ruby%20app%20server%2C%20up%20to%204x%20faster%20than%20Unicorn%2C%20Puma%2C%20Torquebox!&amp;tw_p=tweetbutton&amp;url=http%3A%2F%2Fwww.rubyraptor.org%2F" class="twitter hidden-xs"><img src="../img/twitter.png" width="48" height="48" alt="Tweet about Raptor" title="Tweet about Raptor"></a>
+        <a href="../github.html"><img src="../img/forkme-orange.png" alt="Fork me on GitHub" width="149" height="149"></a>
+    </div>
+
+    <!-- Header -->
+    <div class="intro-header intro-header-small">
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-lg-12">
+                    <div class="intro-message intro-message-small">
+                        <h1><a href="/"><img src="../img/logo.png" width="96" height="89" alt="Raptor"></a></h1>
+                        <h3>A radically new Ruby web server</h3>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <!-- /.container -->
+
+    </div>
+    <!-- /.intro-header -->
+
+    <!-- Page Content -->
+
+    <div class="content-section-a">
+
+        <div class="container">
+
+            <div class="row">
+                <div class="col-sm-8 col-sm-offset-2">
+                    <p><em>Raptor is a new Ruby web server that's up to 4x faster than Unicorn, and up to 2x faster than Puma and Torquebox. <a href="/">Learn more about Raptor here.</a></em></p>
+                    <p><em>This blog post is part of a series of posts on how we've implemented Raptor.</em></p>
+                </div>
+            </div>
+
+        </div>
+        <!-- /.container -->
+
+    </div>
+    <!-- /.content-section-a -->
+
+    <div class="content-section-b blog">
+
+        <div class="container">
+
+        	<div class="row">
+        		<div class="col-md-offset-2 col-md-8">
+            		<h1 id="how-weve-made-raptor-up-to-4x-faster-than-unicorn-up-to-2x-faster-than-puma-torquebox">How we’ve made Raptor up to 4x faster than Unicorn, up to 2x faster than Puma, Torquebox</h1>
+
+<div class="subtitle">Dissecting Raptor part 1: performance optimization techniques</div>
+
+<div class="image-center"><a href="/"><img src="../img/chart-blacktext.png" width="300" height="267" class="img-responsive chart" /></a></div>
+
+<p>One of the big questions have people have for us, is how we’ve made Raptor fast. After all, claiming that it’s “up to 4x faster” than other app servers is not a small claim. Unicorn, Puma and Torquebox are already pretty fast, so beating them hasn’t been easy and has taken a lot of work.</p>
+
+<p>There are multiple reasons why Raptor is fast, and we will release a series of blog posts that explain in high detail the techniques used to make a fast application server. In future blog posts we’ll also elaborate more on Raptor’s advanced features, because performance isn’t the only thing that Raptor is good at.</p>
+
+<p>First, we’ll give an introduction into how Ruby app servers work. This places our optimization techniques in the right context. Next, we’ll cover some of the optimization techniques, namely the usage of a fast HTTP parser, combining multithreading and evented I/O, zero-copy architecture and memory allocation techniques.</p>
+
+<p>The work that we’ve done to make Raptor fast is fairly low-level, so a good understanding of sockets, networking, operating systems and hardware would help a lot with making sense of this article. We’ve provided some resources in the <a href="#literature">Literature</a> section so that you can gain a better understanding of these mechanisms.</p>
+
+<p><strong>In this blog post:</strong></p>
+
+<ul>
+  <li><a href="#how_ruby_app_servers_work">How Ruby app servers work</a>
+    <ul>
+      <li><a href="#rack_the_http_abstraction">Rack: the HTTP abstraction</a></li>
+      <li><a href="#connection_handling_and_io_models">Connection handling and I/O models</a></li>
+      <li><a href="#slow_client_problem">The slow client problem</a></li>
+      <li><a href="#raptors_io_model">Raptor’s I/O model</a></li>
+    </ul>
+  </li>
+  <li><a href="#writing_a_fast_http_server">Writing a fast HTTP server</a></li>
+  <li><a href="#nodejs_http_parser">The Node.js HTTP parser</a></li>
+  <li><a href="#one_event_loop_per_thread">Hybrid evented/multithreaded: one event loop per thread</a></li>
+  <li><a href="#zero_copy">Zero-copy: reducing CPU working set, coping with memory latencies</a>
+    <ul>
+      <li><a href="#mbufs">Mbufs: reference-counted, heap-allocated, reusable memory buffers</a></li>
+      <li><a href="#scatter_gather_io">Scatter-gather I/O: avoiding concatenation of buffers</a></li>
+    </ul>
+  </li>
+  <li><a href="#avoiding_dynamic_memory_allocations">Avoiding dynamic memory allocations</a>
+    <ul>
+      <li><a href="#object_pooling">Object pooling</a></li>
+      <li><a href="#palloc">Palloc: stack-like, region-based memory management</a></li>
+    </ul>
+  </li>
+  <li><a href="#literature">Literature</a></li>
+  <li><a href="#conclusion">Conclusion &amp; next installment</a></li>
+</ul>
+
+<p><a name="how_ruby_app_servers_work"></a></p>
+
+<h2 id="how-ruby-app-servers-work">How Ruby app servers work</h2>
+
+<p>But before we go into the hardcore details, here’s a conceptual introduction into Ruby app servers. If you’re already familiar with this material, you can skip this section.</p>
+
+<p><a name="rack_the_http_abstraction"></a></p>
+
+<h3 id="rack-the-http-abstraction">Rack: the HTTP abstraction</h3>
+
+<div class="image-center"><a href="http://rack.github.io/"><img src="../img/rack-logo.png" width="400" height="200" class="img-responsive" /></a></div>
+
+<p>All Ruby app servers are essentially HTTP servers, because HTTP is the universal protocol that all Ruby app servers speak. Maybe you have a vague understanding of what an HTTP server is. But what does it <em>really</em> do, and how does it fit in the overall picture with the application?</p>
+
+<p>All web applications follow a basic model. First, they have to accept HTTP requests from some I/O channels. Then they process these requests internally. Finally, they output HTTP responses, which are sent back to the HTTP clients. The clients are typically web browsers, but may also be tools like <code>curl</code> or even search engine spiders.</p>
+
+<p>However, Ruby web apps don’t typically work with HTTP requests and responses directly, because if they do then each Ruby web app would have to implement its own web server. Instead, they work with an abstraction of HTTP requests and responses. This abstraction is called <a href="http://rack.github.io/">Rack</a>. Every Ruby app server implements the Rack abstraction, while Ruby web frameworks like Rails, Sinatra etc interface with the app server through <a href="http://rubydoc.info/github/rack/rack/master/file/SPEC">the Rack specification</a>. This way, you can seamless switch between app servers: switching from Puma or Unicorn to Raptor is trivial.</p>
+
+<div class="image-center"><img src="../img/rack.png" width="558" height="390" class="img-responsive" /><br /><em>Rack is the HTTP abstraction layer for Ruby. All Ruby app servers implement the Rack interface, so that all Ruby web frameworks work with all Ruby app servers.</em></div>
+
+<p>So the job of the app server is to accept and parse HTTP requests, to speak with the underlying web app through the Rack abstraction, and to convert the Rack responses (which the application returns) back into real HTTP responses.</p>
+
+<p><a name="connection_handling_and_io_models"></a></p>
+
+<h3 id="connection-handling-and-io-models">Connection handling and I/O models</h3>
+
+<p>When writing network software (like HTTP servers), there are multiple I/O models that the programmer can choose from. The I/O model defines how concurrent I/O streams are handled. Each model has its own pros and cons. The Rack specification does not specify which I/O model is used. That is left as an implementation detail of the application server.</p>
+
+<h4 id="multi-process-blocking-io">1. Multi-process blocking I/O</h4>
+
+<div class="image-center"><img src="../img/multi-process-io.png" width="491" height="416" class="img-responsive" /><br /><em>Multi-process I/O model. Each process handles 1 client at a time. Concurrency is achieved by spawning multiple processes.</em></div>
+
+<p>A read call blocks if the other side hasn’t sent any data yet, and a write call blocks if the other side is too slow with receiving data. Because of the blocking behavior, an application can only handle 1 client at a time. So how do we handle more clients at a time? By spawning multiple processes!</p>
+
+<p>This I/O model is the traditional model used by Ruby web apps, and is the one used in Unicorn, as well as <a href="http://httpd.apache.org/docs/current/mod/prefork.html">Apache with the prefork MPM</a>.</p>
+
+<p>Pros:</p>
+
+<ul>
+  <li>Very easy to work with.</li>
+  <li>Immune to multithreading bugs (because no threads are used for handling I/O concurrency).</li>
+</ul>
+
+<p>Cons:</p>
+
+<ul>
+  <li>Processes are heavyweight, so if you need a lot of I/O concurrency (like when handling WebSockets, or when your app performs a lot of HTTP API calls) then this model is not very suitable. Suppose you want to serve 5000 websocket clients on a single server. You will need 5000 processes (1 client per process). A reasonably large Rails app can consume 250 MB per process, so you’ll need 1.2 TB of RAM. Ouch.</li>
+  <li>Because of the limited I/O concurrency, the app server <strong>must</strong> be protected by a “buffering reverse proxy” which can handle a greater amount of I/O concurrency. The reverse proxy buffers requests and responses in order to shield the app server against slow clients, who could otherwise block your application and effectively take it down. This is explained later in section <a href="#slow_client_problem">“The slow client problem”</a>.</li>
+</ul>
+
+<h4 id="multi-threaded-blocking-io">2. Multi-threaded blocking I/O</h4>
+
+<div class="image-center"><img src="../img/multithreaded-io.png" width="610" height="424" class="img-responsive" /><br /><em>Multithreaded I/O model. Each process has multiple threads. Each thread handles 1 client at a time. Concurrency is achieved by spawning a small number of processes, each with many threads.</em></div>
+
+<p>I/O calls still block, but instead of only spawning processes, the app server also spawns threads. A process has multiple threads, and each thread handles 1 client at a time. Because threads are lightweight, you can handle the same amount of I/O concurrency with a lot less memory. To serve 5000 websocket clients, you need 5000 threads in total. Suppose you run 8 app processes on your 8-core server (1 process per CPU core), then each processes must be configured with 625 threads. Ruby and your OS can handle this easily. A single process would use maybe 1 GB of memory (assuming a 1 MB overhead per thread), but probably less. You’ll only need 8 GB of memory in total, a lot less than the 1.2 TB when using the multi-process blocking I/O model.</p>
+
+<p>This I/O model is the one used Torquebox and by <a href="http://httpd.apache.org/docs/current/mod/worker.html">Apache with the worker MPM</a>. It’s also used by Puma, for the most part; Puma uses a limited hybrid strategy, which we’ll describe later.</p>
+
+<p>Pros:</p>
+
+<ul>
+  <li>For <a href="https://en.wikipedia.org/wiki/Embarrassingly_parallel">embarassingly parallel</a> workloads like web requests, using threads to handle client I/O is still pretty easy to work with.</li>
+</ul>
+
+<p>Cons:</p>
+
+<ul>
+  <li>All your application code and libraries must be thread-safe.</li>
+  <li>The app server <strong>should</strong> be protected by a buffering reverse proxy, for the same reason why it is necessary for the multi-process blocking I/O model. While multithreaded app servers are less susceptible to slow clients, they don’t solve the slow client problem entirely.</li>
+</ul>
+
+<h4 id="evented-io">3. Evented I/O</h4>
+
+<div class="image-center"><img src="../img/ev-server.png" width="600" height="289" class="img-responsive" /><br /><em>Evented I/O model. <small>Image copyright <a href="http://berb.github.io/diploma-thesis/original/042_serverarch.html">Benjamin Erb</a>.</small></em></div>
+
+<p>I/O calls do not block at all. When the other side hasn’t sent data yet, or when the other side is too slow with receiving data, I/O calls would just return with a specific error. The application has an event loop which contiuously listens for I/O events and responds to them accordingly. The event loop sleeps when there are no events.</p>
+
+<p>This I/O model is by far the “weirdest” one and the one that’s the hardest to program against. It requires an entirely different approach than the previous two. While multi-process blocking I/O code can be fairly easily turned into multi-threaded blocking I/O code, using evented I/O often requires a rewrite. The application must be specifically designed to use evented I/O.</p>
+
+<p>This I/O model is the one used by <a href="http://www.nginx.org/">Nginx</a>, <a href="http://nodejs.org/">Node.js</a> and Thin. It’s also used partially by Puma for limited protection against slow clients; we’ll describe this later.</p>
+
+<p>Pros:</p>
+
+<ul>
+  <li>You can handle a virtually unlimited amount of I/O concurrency using this model, using only a single process and a single thread, with very little resources. While multithreading already allows much greater I/O concurrency, evented I/O is in a much higher league.</li>
+  <li>Evented servers are completely immune to slow clients, thereby eliminating the need for a buffering reverse proxy.</li>
+</ul>
+
+<p>Cons:</p>
+
+<ul>
+  <li>Much more difficult to work with compared to blocking I/O. Requires application code and libraries that are specifically written with the evented model in mind.</li>
+</ul>
+
+<p><a name="slow_client_problem"></a></p>
+
+<h3 id="the-slow-client-problem">The slow client problem</h3>
+
+<p>What are “slow clients” and why can they pose a problem? Imagine your application as the city hall, and your app server as the city hall desks. People enter a desk (send a request), do some paper work (processing inside the app) and leave with stamps on their papers (receive a response). Slow clients are like people entering a desk, but never leaving, so that the clerk can not help anybody else.</p>
+
+<div class="image-center"><img src="../img/slowclientproblem.png" width="495" height="447" class="img-responsive" /><br /><em>Slow clients block application processes, preventing them from handling any further requests.</em></div>
+
+<p>Are slow clients a real problem? In a word: yes. Slow clients used to be modem users, but nowadays slow clients can also be mobile clients. Mobile networks are notorious for having high latency. Network congestion can also cause clients to become slow. Some clients are slow <em>on purpose</em> in order to attack your server: see <a href="https://en.wikipedia.org/wiki/Slowloris_(software)">the Slowloris attack</a>.</p>
+
+<p>This problem is solved with a buffering reverse proxy that can handle a much larger I/O concurrency. Imagine that we put a million clerks outside the building. These clerks are not trained to process your paperwork. Instead, they only <em>accept</em> your paperwork (buffer your requests), bring them to the clerks inside the city hall, and bring the stamped paperwork back to you (buffer application responses). These clerks never stand still in front of the desks so they’ll never cause the slow client problem. Because these outside clerks are lightly trained, they’re cheap (use less RAM) and we can have a lot of them.</p>
+
+<p>This is why Eric Wong, author of Unicorn, <a href="http://unicorn.bogomips.org/PHILOSOPHY.html">urges people to put Unicorn behind a buffering reverse proxy</a>. This buffering reverse proxy is usually Nginx, which buffers everything and can handle a virtually unlimited number of clients. Multithreaded servers like Puma and Torquebox are less susceptible because they have more desks inside the city hall, but those desks are still limited in number because the clerks require more training (use more RAM) compared to the cheap clerks outside the building.</p>
+
+<div class="image-center"><img src="../img/bufferingreverseproxy.png" width="510" height="630" class="img-responsive" /><br /><em>A buffering reverse proxy that has unlimited I/O concurrency will shield applications from slow clients.</em></div>
+
+<p><a name="raptors_io_model"></a></p>
+
+<h3 id="raptors-io-model">Raptor’s I/O model</h3>
+
+<p><strong>Raptor uses all three of the aforementioned I/O models.</strong> Raptor uses a hybrid strategy in order to fight the slow client problem. By default, Raptor uses the multi-process blocking I/O model, just like Unicorn. However, Raptor has <em>a built-in buffering reverse proxy</em>. This builtin reverse proxy is written in C++ and uses evented I/O.</p>
+
+<p>Why is a builtin buffering reverse proxy cool? Why not rely on Nginx?</p>
+
+<ul>
+  <li>It’s less work for the user. You don’t have to setup Nginx.</li>
+  <li>If you’re not familiar with Nginx, then using Raptor means you’ll have one tool less to worry about.</li>
+  <li>Setting up Nginx <em>properly</em> requires quite a bit of work. Using websockets or using Rails streaming? Make sure you disable response buffering for the relevant URIs, otherwise they won’t work correctly. Raptor’s builtin reverse proxy does the right thing by default, without any configuration.</li>
+</ul>
+
+<p>In other words: it’s all about making things simple.</p>
+
+<p>Puma also uses a similar hybrid strategy. It’s multithreaded but has a builtin evented server which buffers requests and responses. However, Puma’s implementation is limited, and only protects against slow <em>sending</em> clients, <a href="https://twitter.com/evanphx/status/531857286382112770">but not against slow <em>receiving</em> clients</a>. Raptor’s implementation fully protects against slow clients, no matter in which direction they’re slow.</p>
+
+<p>Raptor also optionally allows multithreading in a future paid version. The core of Raptor is open source, as are most features, but specific features like multithreading will be available in a paid manner. We’ll release more information about this later. When multithreading is enabled, the app is <em>still</em> protected by the builtin buffering reverse proxy, so it’s not necessary to attach it behind Nginx.</p>
+
+<p><a name="writing_a_fast_http_server"></a></p>
+
+<h2 id="writing-a-fast-http-server">Writing a fast HTTP server</h2>
+
+<p>With the introduction out of the way, it’s time for the hardcore details: how we’ve made Raptor fast. The performance is mostly thanks to our HTTP server implementation. We’ve written a custom, embedded HTTP server in C++, completely optimized for performance.</p>
+
+<p>The builtin HTTP server is about <strong>twice as fast as Nginx</strong>. This is because it’s completely designed for the workloads that Raptor handles. In return, it has fewer features than Nginx. For example, our builtin HTTP server doesn’t handle static file serving at all, nor gzip compression. It trades features for performance. Having said this, you can still enjoy all the Nginx features by proxying Raptor behind Nginx, or by direct Nginx integration. This is fully supported and it’s something that we will elaborate on in a future blog post.</p>
+
+<p>This builtin HTTP server is also our builtin buffering reverse proxy, as described in section <a href="#slow_client_problem">“The slow client problem”</a>.</p>
+
+<p><a name="nodejs_http_parser"></a></p>
+
+<h2 id="the-nodejs-http-parser">The Node.js HTTP parser</h2>
+
+<p>Our builtin HTTP server utilizes <a href="https://github.com/joyent/http-parser">the Node.js HTTP parser</a>, which is written in C. The Node.js HTTP parser is based on the Nginx HTTP parser, but it has been extracted and made general, so that it can be used outside the Nginx codebase. The parser is quite nice and supports HTTP 0.9-1.1, keep-alive, upgrades (like websockets), request and response headers and chunked bodies. It is quite robust and correctly handles parsing errors, which is important from a security perspective. Performance is quite good as well: the data structures are optimized in such a way that they use as little memory as possible, can be used in a <a href="#zero_copy">zero-copy</a> manner, while still being general enough to be used in all sorts of applications.</p>
+
+<div class="image-center"><a href="https://github.com/joyent/http-parser"><img src="../img/nodejs-parser.png" width="757" height="211" class="img-responsive" /></a></div>
+
+<p>There are other options that we’ve considered as well. First is the Mongrel parser, originally written by Zed Shaw for Mongrel. Zed used <a href="http://www.colm.net/open-source/ragel/">Ragel</a> to automatically generate a parser in C using the HTTP grammar specification. This parser has proven to be very successful and robust, and is also used in Thin, Unicorn and Puma. However we chose not to use this parser because it’s very Ruby-oriented. Although it’s C code, it accesses a lot of Ruby internals, making it hard to use outside of Ruby. It’s also less performant than the Node.js parser.</p>
+
+<p><a href="https://github.com/h2o/picohttpparser">PicoHTTPParser</a> is the HTTP parser used in <a href="https://github.com/h2o/h2o">the H2O embedded web server</a>. The author claims that it’s much faster than the Node.js HTTP parser, but it’s also less battle tested. H2O hasn’t quite proven itself in production yet, while the Nginx HTTP parser has been around for a long time, and the Node.js parser has also received quite some testing thanks to the popularity of Node.js. HTTP parsing is one of the most important parts of an HTTP server, and doing anything wrong here can at best result in incorrect behavior, and at worst result in security vulnerabilities. Since Raptor aims to be a production-grade server, we’ve chosen the slightly slower but likely more battle-tested Node.js HTTP parser over PicoHTTPParser.</p>
+
+<p>We’ve also considered hand-rolling our own HTTP parser. However, this would be a tremendous undertaking, would put the burden of maintenance on ourselves, and wouldn’t be as battle-tested as the Node.js parser. In short, the reasons why we chose the Node.js parser over hand-rolling our own is very similar to the reasons why we chose not to use PicoHTTPParser.</p>
+
+<h2 id="the-libev-event-library">The libev event library</h2>
+
+<p>As mentioned before, our builtin HTTP server is evented. Writing a network event loop with support for I/O, timers, etcetera is quite a lot of work. This is further complicated by the fact that every operating system has its own mechanism for scalable I/O polling. Linux has <a href="https://en.wikipedia.org/wiki/Epoll">epoll</a>, the BSDs and OS X have <a href="https://en.wikipedia.org/wiki/Kqueue">kqueue</a>, Solaris has event ports; the list goes on.</p>
+
+<p>Fortunately, there exist libraries which abstract away these differences. We use the excellent <a href="http://software.schmorp.de/pkg/libev.html">libev</a> library by Marc Lehmann. Libev is very fast and provides I/O watchers, timer watchers, async-signal safe communication channels, support for multiple event loops, etc.</p>
+
+<p>Libev should not be confused with the similarly-named <a href="http://libevent.org/">libevent</a>. Libevent is also an excellent library and is much more full-featured than libev. For example, it also provides asynchronous DNS lookups, an RPC framework, a builtin evented HTTP server, etc. However, we don’t need any of those extra features, and we were confident that we can make an HTTP server that’s faster than the libevent builtin HTTP server. We’ve also found <a href="http://libev.schmorp.de/bench.html">libev to be faster than libevent</a> thanks to libev’s smaller feature set. This is why we’ve chosen to go with libev instead of libevent.</p>
+
+<p><a name="one_event_loop_per_thread"></a></p>
+
+<h2 id="hybrid-eventedmultithreaded-one-event-loop-per-thread">Hybrid evented/multithreaded: one event loop per thread</h2>
+
+<p>When we said that Raptor’s builtin HTTP server is evented, we were not telling the entire truth. It is actually <strong>hybrid multithreaded and evented</strong>. Our HTTP server spawns as many threads as the number of CPU cores, and runs an event loop on each thread.</p>
+
+<p>The reason why we did this is because evented servers are traditionally bound to a single CPU core. We’ve found that by using a single CPU core, Raptor was not able to make full use of the system’s resources. Therefore we’ve chosen a hybrid strategy.</p>
+
+<p>However, our original hybrid approach posed a problem. Threads could become “unbalanced”, with one thread (and thus one CPU core) serving a majority of the clients while the other threads served only a small number of clients. The load would not be evenly distributed over CPU cores. Upon further investigation, it turned out that the evented nature of the threads was the culprit: a thread would accept multiple clients before the kernel schedules another thread. By the time the scheduling happens, the first thread has already accepted the majority of the clients. This is a problem that doesn’t occur with traditional blocking multi-process/multithreaded servers, because each process/thread would only accept the next client when it’s done processing the client request.</p>
+
+<p>We solved this problem by writing an internal load balancer, which is responsible for accepting new clients and distributing them evenly over all threads in a round-robin manner.</p>
+
+<p><a name="zero_copy"></a></p>
+
+<h2 id="zero-copy-reducing-cpu-working-set-coping-with-memory-latencies">Zero-copy: reducing CPU working set, coping with memory latencies</h2>
+
+<p>CPUs have become faster and faster, but RAM speeds have been lagging behind for more than a decade. Accessing RAM can cost thousands of CPU cycles. Because of this, CPUs have <a href="https://en.wikipedia.org/wiki/CPU_cache">multiple layers of memory caches</a>, which are very small but very fast. But because of the small cache sizes, high-performance applications should minimize their <em>working set</em> – the amount of memory that they use in a given short time interval.</p>
+
+<p>The main job of an HTTP server is to process I/O, so naturally this means that it has to manage memory buffers for I/O operations. However, memory buffers are fairly large compared to CPU cache sizes. 4 KB is a typical size for such memory buffers. In comparison, most CPUs have an L1 cache of 32 KB or less.</p>
+
+<p>A naively written HTTP server might manage the life times of I/O data by copying them between multiple buffers. However, this puts even more stress on the small CPU caches. Thus, a high performance HTTP server should minimize the amount of data copying.</p>
+
+<p>Raptor is completely built with a <a href="http://en.wikipedia.org/wiki/Zero-copy">“zero-copy architecture”</a>, which means that we completely avoid copying memory buffers when it’s not necessary. Such an architecture reduces the working set and reduces stress on CPU caches. Two subsystems form the core of our zero-copy architecture: mbufs and scatter-gather I/O.</p>
+
+<p><a name="mbufs"></a></p>
+
+<h3 id="mbufs-reference-counted-heap-allocated-reusable-memory-buffers">Mbufs: reference-counted, heap-allocated, reusable memory buffers</h3>
+
+<p>Network software receive data over sockets through the <code>read()</code> system call. This system call places data in a specified buffer. One important question is: where does this buffer come from?</p>
+
+<p>The buffer can be allocated on the stack. Stack allocation is very very fast because it only involves bumping a pointer, but it means that the buffer only lives until the end of the function in which the buffer is defined. This means that all operations on that buffer <em>must</em> finish before the receiver function returns. This is viable when using blocking I/O, but not viable when using evented I/O. Operations are fully asynchronous and may outlive the receiver function. When using stack allocation, one must therefore copy the buffer to keep it alive.</p>
+
+<p>The buffer can also be allocated on the heap when a client connects, and freed when that client disconnects. This decouples the life time of the buffer from the life time of the receiver function. However, heap allocation is expensive and would kill performance.</p>
+
+<p>We’ve eventually found the silver bullet in the form of a system of heap-allocated, but reusable memory buffers. Instead of freeing a buffer, it’s merely put in a freelist. Next time we need a buffer, we take one from the freelist when available, or allocate one when not available. Over time, this completely eliminates the overhead of allocating buffers on the heap. This system is called <em>mbuf</em>. It is based on the mbuf system in Twitter’s <a href="https://github.com/twitter/twemproxy">twemproxy</a>, but we’ve made several important modifications:</p>
+
+<ul>
+  <li>We’ve made it <em>reference-counted</em>, and we use C++ <a href="https://en.wikipedia.org/wiki/Resource_Acquisition_Is_Initialization">RAII</a> patterns to automatically manage references. This makes it much easier to use buffers in advanced scenarios without worrying about buffer life times.</li>
+  <li>We’ve added support for <em>slices</em>, similar to how Node.js manages <a href="http://nodejs.org/api/buffer.html#buffer_buf_slice_start_end">Buffer slices</a>. Each slice increments the reference count. This makes it possible to work with sub-buffers without copying data around. An important use case for slices is processing HTTP headers only, even though we received the body too in a single <code>read()</code> call.</li>
+  <li>We’ve made it <em>reentrant</em>. Twemproxy’s original version relied on global variables, making the entire system unusable with multiple threads. Adding locks would kill multi-core performance. Instead, we gave each thread its own mbuf context so that each thread has its own mbuf subsystem. This way, there is no lock contention between threads.</li>
+  <li>We’ve made it <em>introspectable</em>. The Raptor administration interface allows one to inspect the status of the mbuf subsystems. Administration features is something that we will cover in a future blog post.</li>
+</ul>
+
+<p>There are a few downsides to this approach. One is that memory buffers are never released back to the operating system automatically, because doing so might hurt performance. Therefore, when left alone, Raptor’s memory usage would be proportional to the peak number of clients. Luckily, we also provide an administration command so that the administrator can force free memory buffers to be released back to the operating system.</p>
+
+<p>The other downside is that, since mbufs are private to a thread, threads cannot reuse each others’ free memory buffers. This could lead to slightly higher memory usage than is necessary.</p>
+
+<p><a name="scatter_gather_io"></a></p>
+
+<h3 id="scatter-gather-io-avoiding-concatenation-of-buffers">Scatter-gather I/O: avoiding concatenation of buffers</h3>
+
+<p>Normally when you have strings from multiple memory addresses, and you want to write them over a socket, you have two choices:</p>
+
+<ol>
+  <li>Concatenate all strings into one big string, and send the big string to the kernel. This requires more memory and involves copying data, but only involves one call to the kernel. A kernel call tends to be much more expensive than a concatenation operation unless you’re working with a lot of data.</li>
+  <li>Send each string individually to the kernel. You don’t need as much memory but you need a lot of expensive kernel calls.</li>
+</ol>
+
+<div class="image-center"><a href="../img/normalio.png"><img src="../img/normalio.png" width="300" height="309" /></a><br /><em>Normal I/O requires many system calls or a temporary buffer for concatenation.</em></div>
+
+<p>In a similar fashion, if you want to read some data from a socket but you want different parts of the data to end up in different memory buffers, then you either have to <code>read()</code> the data into a big buffer and copy each part to the individual buffers, or you have to <code>read()</code> each part individually into its own buffer.</p>
+
+<p>With scatter-gather I/O you can pass an array of memory buffers to the kernel. This way you can tell the kernel to write multiple buffers to a socket, as if they form a single contiguous buffer, but with only one kernel call. Similarly you can tell the kernel to put different parts of the read data into different buffers. On Unix systems this is done through the <a href="http://pubs.opengroup.org/onlinepubs/009695399/functions/readv.html">readv()</a> and <a href="http://pubs.opengroup.org/onlinepubs/009604499/functions/writev.html">writev()</a> system calls. Raptor uses <code>writev()</code> extensively.</p>
+
+<div class="image-center"><img src="../img/ScatterGatherIO.png" width="273" height="192" /><br /><em>Scatter/gather I/O allows writing multiple buffers in a single system call.</em></div>
+
+<p><a name="avoiding_dynamic_memory_allocations"></a></p>
+
+<h2 id="avoiding-dynamic-memory-allocations">Avoiding dynamic memory allocations</h2>
+
+<p>Dynamic memory allocation using the C <code>malloc()</code> function or the C++ <code>new</code> operator is expensive. Especially in an HTTP server, dynamic memory management can easily eat a major part of the processing time. Depending on the memory allocator implementation, it can also be significant source of lock contention between threads. This is why we use per-thread object pooling and region-based memory management.</p>
+
+<p>Why is dynamic memory allocation expensive? Allocating and freeing memory might seem like simple operations, but in reality they have <a href="http://stackoverflow.com/questions/2264969/why-memory-allocation-on-heap-is-much-slower-than-on-stack">rather complex logic that can be slow</a>. It turns out that allocating and freeing memory is a complex problem. Therefore, dynamic memory allocation should be avoided in high-performance applications. <a href="http://stackoverflow.com/questions/15894122/why-not-allocate-and-deallocate-memory-frequently-in-c-games">Avoiding memory allocation is standard practice in high-performance game programming</a>.</p>
+
+<p>Since memory allocated by one thread can be freed by another, dynamic memory allocators have global data structures which are protected by locks. This automatically means that threads contend on a lock when they allocate or free memory at the same time. Some dynamic memory allocator implementations, like <a href="http://goog-perftools.sourceforge.net/doc/tcmalloc.html">Google’s tcmalloc</a>, implement per-thread caches which improves the situation somewhat, but the problem of lock contention is never fully solved.</p>
+
+<p>One solution to these problems is to allocate objects on the stack. However, just like with buffers, this is only useful in a limited number of cases. We may want an object to live longer than the scope of a function.</p>
+
+<p>Therefore we use two techniques to avoid dynamic memory allocations: object pooling and region-based memory management.</p>
+
+<p><a name="object_pooling"></a></p>
+
+<h3 id="object-pooling">Object pooling</h3>
+
+<p>Object pooling is a technique similar to the one we used for <a href="#mbufs">mbufs</a>. We put free objects in a freelist when we no longer need them. When we need a new object again, we just take one from the freelist (or allocating one when the freelist is empty), which is a fast O(1) operation involving changing a few pointers.</p>
+
+<p>Unlike mbufs, which are allocated on the heap, pooled objects are allocated from segregated storage using the excellent <a href="http://www.boost.org/doc/libs/1_57_0/libs/pool/doc/html/index.html">boost::pool</a> library. With boost::pool, we allocate large chunks of memory, which we then divide into small pieces equal to the object size, and objects are allocated from these memory chunks. This has two further advantages:</p>
+
+<ul>
+  <li><strong>Increased CPU cache locality.</strong> Allocating mbufs on the heap, rather than from segregated storage, neither helps nor hurts CPU cache locality because memory buffers are big. But the objects that we pool tend to be small, ranging from 100 bytes to 1.5 KB. Dynamically allocating them could scatter them all over the memory address space, but by pooling them they will be allocated near each other.</li>
+  <li><strong>Decreased malloc space overhead.</strong> Each dynamic memory allocation allocates not only the requested number of bytes, but also some book keeping data structures. By pooling objects, we completely avoid these book keeping data structures. Mbufs are so big that the book keeping data structures don’t add too much overhead, but for small objects the overhead can be significant, which is why avoiding them is important.</li>
+</ul>
+
+<p>We apply the pooling technique to client objects, request objects, HTTP parser objects, body parsing objects and application session objects. These objects are created <em>very</em> frequently, and therefore benefit greatly from pooling. Client objects are created every time a client connects, while request-, HTTP parser- and application session objects are created on every request.</p>
+
+<p>While writing Raptor, we also came to the realization that this technique can be used for more than just avoiding memory allocations: it can also be used for <em>minimizing memory usage</em>. For example, we need the HTTP parser object on every request, but not during the entire lifetime of the request. So instead of embedding the HTTP parser object as a static object inside the client object, we can allocate it dynamically from the pool, and free it when we no longer need it, without harming performance.</p>
+
+<p>The disadvantages of object pooling are very similar to the disadvantages of mbufs. Free memory is never automatically released back to the operating system. Object pools are per-thread so that threads cannot share objects, resulting in slightly higher memory usage than necessary.</p>
+
+<p><a name="palloc"></a></p>
+
+<h3 id="palloc-stack-like-region-based-memory-management">Palloc: stack-like, region-based memory management</h3>
+
+<p>Besides objects, the Raptor HTTP server also needs to allocate miscellaneous variable-sized data structures and strings during request processing. For example, it needs to allocate variable-sized arrays in order to keep track of buffers. It needs to allocate small buffers in order to format strings, like generating timestamp strings. It needs to allocate hash tables and associated entries in order to keep track of header fields and values.</p>
+
+<p>Object pooling is useful for fixed-size objects, but not for variable-sized structures. Again, stack allocation is only of limited use because of lifetime issues. Mbufs are also not useful for these structures because mbufs have a fixed size. If the mbuf size is too small, then the structure cannot be allocated inside it. If the mbuf size is too big, then memory is wasted. This makes mbufs only useful as buffers for I/O operations. And because of the variable sizes, we can’t pre-allocate static storage inside client and request objects.</p>
+
+<p>The palloc subsystem in Raptor solves this problem in an elegant way. It is an implementation of <a href="https://en.wikipedia.org/wiki/Region-based_memory_management">region-based memory management</a>. We allocate a 16 KB chunk of memory that’s associated with the request. This chunk of memory is used like a stack, for allocating small structures and strings. Allocation is extremely fast because it only involves bumping a pointer. But unlike the system stack, the palloc stack pointer is never decremented: you can only allocate, not deallocate. The stack pointer is reset back to 0 at the end of the request, making the entire memory chunk reusable again. If more memory is needed than is available in the current memory chunk, a new memory chunk is allocated. Thus, palloc is the perfect system for small, variable-sized temporary structures that don’t need to live longer than the request.</p>
+
+<p>Another benefit of palloc is that, like the system stack, allocated structures are very close to each other, greatly improving CPU cache locality.</p>
+
+<p>The palloc subsystem in Raptor is based on the palloc subsystem in Nginx, and further improved. Nginx allocates and destroys a palloc memory chunk on every request. However, Raptor reuses palloc memory chunks over multiple requests, thereby further reducing memory allocations.</p>
+
+<p>The obvious down side of this technique is that structures, once allocated, are not deallocated until the end of the request. That’s why we use object pooling for mid-sized structures that we <em>know</em> we won’t need at some point (like the HTTP parser object), while we use palloc for everything else besides I/O buffers.</p>
+
+<p><a name="literature"></a></p>
+
+<h2 id="literature">Literature</h2>
+
+<p>If the topics in this blog post interest you, then you may want to check out the following literature.</p>
+
+<ul>
+  <li><a href="https://www.phusionpassenger.com/documentation/Design%20and%20Architecture.html">Phusion Passenger Design and Architecture: Introduction</a> - The Introduction section provides a good overview of how app servers and I/O models work. Despite this being Phusion Passenger-specific documentation, the Introduction section is a good general read.</li>
+  <li><a href="http://berb.github.io/diploma-thesis/original/042_serverarch.html">Server Architectures - Concurrent Programming for Scalable Web Architectures</a> - A diploma thesis by Benjamin Erb.</li>
+  <li><a href="http://ods.com.ua/win/eng/program/socket/socketprg.html">An Introduction to Socket Programming</a></li>
+  <li><a href="http://unicorn.bogomips.org/PHILOSOPHY.html">Unicorn’s philosophy</a> - Unicorn author Eric Wong explains the design decisions in Unicorn, why slow clients are problematic, and why Unicorn has certain limitations <em>by design</em>.</li>
+  <li><a href="https://en.wikipedia.org/wiki/Slowloris_(software)">Slowloris</a> - A classic “slow client” problem manifested in an attack.</li>
+  <li><a href="http://www.extremetech.com/extreme/188776-how-l1-and-l2-cpu-caches-work-and-why-theyre-an-essential-part-of-modern-chips">How L1 and L2 CPU caches work, and why they’re an essential part of modern chips</a></li>
+  <li><a href="http://www.linuxjournal.com/article/6345">Zero Copy I: User-Mode Perspective</a> - Explaining what zero-copy functionality is for Linux and why it’s useful.</li>
+  <li><a href="http://stackoverflow.com/questions/2264969/why-memory-allocation-on-heap-is-much-slower-than-on-stack">Why memory allocation on heap is MUCH slower than on stack?</a></li>
+  <li><a href="http://stackoverflow.com/questions/15894122/why-not-allocate-and-deallocate-memory-frequently-in-c-games">Why not allocate and deallocate memory frequently in C++ games?</a></li>
+  <li><a href="http://www.boost.org/doc/libs/1_57_0/libs/pool/doc/html/boost_pool/pool/pooling.html">Basic ideas behind object pooling</a> - An introduction to object pooling by the boost::pool library.</li>
+  <li><a href="https://en.wikipedia.org/wiki/Region-based_memory_management">Region-based memory management</a></li>
+</ul>
+
+<p><a name="conclusion"></a></p>
+
+<h2 id="conclusion--next-installment">Conclusion &amp; next installment</h2>
+
+<p>In this blog post we’ve given an introduction into how Ruby app servers work, and we’ve described some of the techniques that we’ve used to make Raptor fast. But there are a lot more techniques, involving optimized open addressing hash tables; micro-optimization techniques to reduce memory usage and to improve CPU cache locality, like unions and pointer tagging; language-level optimizations like using C++ templates and avoiding virtual functions; linked strings; builtin response caching; etcetera. We will elaborate on the other techniques in a future installment of this blog post series.</p>
+
+<p>But despite all the focus so far on performance, Raptor’s strength doesn’t solely lie in performance. Raptor provides many powerful features, makes administration much easier and lets you analyze production problems more quickly and more easily. In future blog posts, we’ll elaborate on Raptor’s features.</p>
+
+<p>We hope you’ve enjoyed this blog post, and we hope to see you next time!</p>
+
+
+                    <p>If you like this blog post, please spread the word on Twitter. :) Thank you.</p>
+
+                    <a id="tweet_current_page_button" href="https://twitter.com/share" class="twitter-share-button" data-via="raptorappserver" data-size="large">Tweet</a>
+                    <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
+        		</div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-offset-2 col-md-8 blog-series-announcement">
+                    <hr>
+                    <p>This blog post is part of a series of posts on how we've implemented Raptor. Interested in the next blog post? Follow <a href="https://twitter.com/raptorappserver">us on Twitter</a> or subscribe to our newsletter. We won't spam you and you can unsubscribe any time.</p>
+
+                    <!-- Begin MailChimp Signup Form -->
+                    <div id="mc_embed_signup">
+                    <form action="http://rubyraptor.us9.list-manage.com/subscribe/post?u=50b909a711edc6443e7650d5f&amp;id=fd3f1e9dcf" method="post" id="mc-embedded-subscribe-form" name="mc-embedded-subscribe-form" class="validate form-inline" target="_blank" role="form" novalidate>
+                        <div id="mc_embed_signup_scroll" class="form-group">
+                        <input type="email" value="" name="EMAIL" class="email form-control input-lg" id="mce-EMAIL" placeholder="Enter your email address" required>
+                        <!-- real people should not fill this in and expect good things - do not remove this or risk form bot signups-->
+                        <div style="position: absolute; left: -5000px;"><input type="text" name="b_50b909a711edc6443e7650d5f_fd3f1e9dcf" tabindex="-1" value=""></div>
+                        <p class="visible-xs-block visible-sm-block"></p>
+                        <input type="submit" value="Subscribe" name="subscribe" id="mc-embedded-subscribe" class="btn btn-primary btn-lg">
+                        </div>
+                    </form>
+                    </div>
+                    <!--End mc_embed_signup-->
+
+                    <p></p>
+                    <ul>
+                        <li><small>Learn how Raptor gives you visibility into app behavior.</small></li>
+                        <li><small>Learn about more cool Raptor features.</small></li>
+                        <li><small>Get notified when we release.</small></li>
+                    </ul>
+
+                    <hr>
+
+                    <div id="disqus_thread"></div>
+                    <script type="text/javascript">
+                        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+                        var disqus_shortname = 'rubyraptor'; // required: replace example with your forum shortname
+
+                        /* * * DON'T EDIT BELOW THIS LINE * * */
+                        (function() {
+                            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+                            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+                            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+                        })();
+                    </script>
+                    <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+                    
+                </div>
+            </div>
+
+        </div>
+        <!-- /.container -->
+
+    </div>
+    <!-- /.content-section-b -->
+
+    <footer>
+        <div class="container">
+            <ul class="list-inline">
+                <li>Copyright &copy; 2014 Raptor developers</li>
+                <li><a href="/">Home</a></li>
+                <li><a href="../github.html">Github</a></li>
+                <li><a href="mailto:info@rubyraptor.org">Contact us</a></li>
+            </ul>
+        </div>
+    </footer>
+
+    <script>
+      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+
+      ga('create', 'UA-32583440-7', 'auto');
+      ga('require', 'linkid', 'linkid.js');
+      ga('send', 'pageview');
+
+    </script>
+
+</body>
+
+</html>
